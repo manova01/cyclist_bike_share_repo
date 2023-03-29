@@ -9,6 +9,7 @@ Introduction
 Cyclistic is a Bike-Sharing coompany based in Chicago that offers single day passes, full day passes for casual users, and an annual subscription fee for its members. Customers who purchase single-ride or full-day passes are referred to as casual riders. The company has set a goal of designing marketing strategies aimed at converting casual users into members, and is looking to analyze the historical bike data trip to identify trends.
 
 Problem Statements
+
 Analysts believe that annual members are more profitable for the company than casual users, and that maximizing annual memberships is key to success.
 The business-related problem statements that could be asked to improve the company's growth rate and success is shared below:
 
