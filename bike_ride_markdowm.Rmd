@@ -1,0 +1,371 @@
+---
+title: "Cyclistic_data"
+author: "Chigoziem"
+date: "2023-03-11"
+output: html_document
+---
+
+load the library
+```{r} 
+
+library(tidyverse)
+library(skimr)
+library(data.table)
+library(lubridate)
+library(hms)
+library(ggplot2)
+
+```
+load the datasets
+```{r}
+
+jan01_df <- read_csv('202201_divvy_tripdata.csv')
+feb02_df <- read_csv('202202_divvy_tripdata.csv')
+mar03_df <-read_csv('202203_divvy_tripdata.csv')
+apr04_df <- read_csv('202204_divvy_tripdata.csv')
+may05_df <- read_csv('202205_divvy_tripdata.csv')
+jun06_df <-read_csv('202206_divvy_tripdata.csv')
+jul07_df <- read_csv('202207_divvy_tripdata.csv')
+aug08_df <- read_csv('202208_divvy_tripdata.csv')
+sep09_df <- read_csv('202209_divvy_tripdata.csv')
+oct10_df <-read_csv('202210_divvy_tripdata.csv')
+nov11_df <-read_csv('202211_divvy-tripdata.csv')
+dec12_df <- read_csv('202212_divvy_tripdata.csv')
+```
+
+merge all  the datasets into one 
+```{r}
+
+cyclistic_df <- rbind(jan01_df,feb02_df,mar03_df,apr04_df,may05_df,jun06_df,jul07_df,aug08_df,sep09_df,oct10_df,nov11_df,dec12_df)
+```
+
+Remove individual data sets
+```{r}
+remove(jan01_df,feb02_df,mar03_df,apr04_df,may05_df,jun06_df,jul07_df,aug08_df,sep09_df,oct10_df,nov11_df,dec12_df)
+```
+
+create new data frame to contain new colums
+```{r}
+yearlistic_date_df <- cyclistic_df
+```
+calculate the ride_length by subtracting started_at ended_at and convert it to time in minutes.
+```{r}
+yearlistic_date_df$ride_length <- difftime(yearlistic_date_df$ended_at, yearlistic_date_df$started_at, units = 'mins')
+```
+create colum for day_of_week
+```{r}
+yearlistic_date_df$date <- as.Date(yearlistic_date_df$started_at)
+yearlistic_date_df$day_of_week <- wday(yearlistic_date_df$started_at)
+yearlistic_date_df$day_of_week <-format(as.Date(yearlistic_date_df$date), '%A')
+yearlistic_date_df$month <-format(as.Date(yearlistic_date_df$date), '%m')
+yearlistic_date_df$year <-format(as.Date(yearlistic_date_df$date), '%y')
+yearlistic_date_df$day <- format(as.Date(yearlistic_date_df$date), '%d')
+yearlistic_date_df$time <-format(as.Date(yearlistic_date_df$date),'%H:%M:%S')
+yearlistic_date_df$time <-as_hms((yearlistic_date_df$started_at))
+yearlistic_date_df$hour <-hour(yearlistic_date_df$time)
+yearlistic_date_df<-yearlistic_date_df%>%mutate(season = 
+                                            case_when(month=='01'~ 'Winter',
+                                                      month == '02'~'Winter',
+                                                      month == '03'~'Spring',
+                                                      month == '04'~'Spring',
+                                                      month == '05'~'Spring',
+                                                      month == '06'~'Summer',
+                                                      month =='07'~'Summer',
+                                                      month =='08'~'Summer',
+                                                      month == '09'~'Fall',
+                                                      month == '10'~'Fall',
+                                                      month == '11'~ 'Fall',
+                                                      month == '12'~ 'Winter')
+    )
+```
+create colum of hour of the day
+```{r}
+yearlistic_date_df<-yearlistic_date_df%>% mutate(time_of_day = 
+                                             case_when(hour == '0' ~ 'Night',
+                                                       hour =='1'~ 'Night',
+                                                       hour == '2' ~ 'Night',
+                                                       hour == '3' ~ 'Night',
+                                                       hour == '4' ~ 'Night',
+                                                       hour == '5' ~ 'Night',
+                                                       hour == '6'  ~ 'Morning',
+                                                       hour == '7' ~ 'Morning',
+                                                       hour == '8' ~ 'Morning',
+                                                       hour == '9' ~ 'Morning',
+                                                       hour == '10' ~ 'Morning',
+                                                       hour == '11' ~ 'Morning',
+                                                       hour == ' 12' ~ 'Afternoon',
+                                                       hour == '13' ~ 'Afternoon',
+                                                       hour == '14' ~'Afternoon',
+                                                       hour == '15' ~ 'Afternoon',
+                                                       hour == '16'~ 'Afternoon',
+                                                       hour == '17' ~ 'Afternoon',
+                                                       hour == '18'~ 'Evening',
+                                                       hour == '19' ~'Evening',
+                                                       hour == '20' ~ 'Evening',
+                                                       hour == '21' ~'Evening',
+                                                       hour == '22' ~ 'Evening',
+                                                       hour == '23' ~ 'Evening')
+)
+```
+clean the dataset
+```{r}
+yearlistic_date_df<- distinct(yearlistic_date_df)
+```
+remove ride length that is than =  0 or less  
+```{r}
+yearlistic_date_df <- yearlistic_date_df[!(yearlistic_date_df$ride_length <=0),]
+```
+remove colums that is not needed
+```{r}
+yearlistic_date_df <- yearlistic_date_df %>%
+  select(-c(ride_id,start_station_id,end_station_id,start_lat,end_lat,end_lng,start_lng))
+```
+view the final data
+```{r}
+view(yearlistic_date_df)
+```
+view the number of rows in the 
+```{r}
+nrow(yearlistic_date_df)
+```
+sum the ride length duplicated data
+```{r}
+sum(duplicated(yearlistic_date_df$ride_length))
+```
+view the head of the table
+```{r}
+head(yearlistic_date_df)
+```
+summarize the dataset
+```{r}
+summarize(yearlistic_date_df)
+```
+
+count the different member type
+
+
+```{r}
+yearlistic_date_df%>%   #count the different member type
+  group_by(member_casual)%>%
+  count(member_casual)
+yearlistic_date_df%>%
+  group_by(member_casual)%>%
+  summarise(n=n())%>%
+  mutate(percent = n*100/sum(n))
+```
+plot the member casual graph
+```{r}
+ggplot(data = yearlistic_date_df,mapping = aes
+(x= member_casual)) +geom_bar()+labs(title = 'Members Against Casual')
+```
+calculate the different and total rides by member type
+```{r}
+yearlistic_date_df %>%
+  group_by(member_casual,rideable_type)%>%
+  count(rideable_type)
+yearlistic_date_df%>%
+  group_by(member_casual,rideable_type)%>%
+  summarise(n=n())%>%
+  mutate(percent = n*100/sum(n))
+```
+
+plot graph of different bike used by member types
+```{r}
+ggplot(data = yearlistic_date_df,mapping = aes
+(x = rideable_type, fill = member_casual))+geom_bar()+labs(title = 'Different Bike Used')
+```
+total ride by member type in respect to hour of the day
+```{r}
+yearlistic_date_df %>%
+  group_by(member_casual)%>%
+  count(hour)%>%
+  print(n=48)
+#Total ride
+yearlistic_date_df%>%
+  count(hour)%>%
+  print(n=24)
+```
+Total rides by member type (morning)
+```{r}
+yearlistic_date_df%>%
+  group_by(member_casual)%>%
+  filter(time_of_day == 'Morning') %>%
+  count(time_of_day)
+```
+Total ride in the morning
+```{r}
+yearlistic_date_df %>%
+  filter(time_of_day == 'Morning')%>%
+  count(time_of_day)
+```
+Total rides by member type (Afternoon)
+```{r}
+yearlistic_date_df%>%
+  group_by(member_casual)%>%
+  filter(time_of_day == 'Afternoon')%>%
+  count(time_of_day)
+
+```
+
+Total rides
+```{r}
+yearlistic_date_df %>%
+  filter(time_of_day == 'Afternoon')%>%
+  count(time_of_day)
+```
+total rides member type (evening)
+```{r}
+yearlistic_date_df %>%
+  group_by(member_casual)%>%
+  filter(time_of_day == 'Evening')%>%
+  count(time_of_day)
+```
+total ride
+```{r}
+yearlistic_date_df%>%
+  filter(time_of_day == 'Evening')%>%
+  count(time_of_day)
+```
+total rides member type (night)
+```{r}
+yearlistic_date_df%>%
+  group_by(member_casual)%>%
+  filter(time_of_day == 'Night')%>%
+  count(time_of_day)
+
+
+yearlistic_date_df%>%
+  filter(time_of_day == 'Night')%>%
+  count(time_of_day)
+```
+total rides of member type(day of week)
+```{r}
+yearlistic_date_df%>%
+  group_by(member_casual)%>%
+  count(day_of_week)
+```
+plot the graph of daily usage
+```{r}
+
+ggplot(data = yearlistic_date_df ,mapping =   aes
+       (x = day_of_week,fill=member_casual))+geom_bar() + labs(title = 'Daily usage')
+```
+
+total rides of member type (day of month)
+```{r}
+yearlistic_date_df%>%
+  group_by(member_casual)%>%
+  count(day)%>%
+  print(n = 64)
+#total rides
+yearlistic_date_df%>%
+  count(day)%>%
+  print(n=31)
+```
+total monthly rides by member type
+```{r}
+yearlistic_date_df%>%
+  group_by(member_casual)%>%
+  count(month )%>%
+  print(n=24)
+yearlistic_date_df%>%
+  count(month)
+```
+plot the graph of monthly usage
+```{r}
+ggplot(data = yearlistic_date_df ,mapping =   aes
+       (x = month,fill=member_casual))+geom_bar() + labs(title = 'Monthly usage')
+```
+total rides of member types by season
+```{r}
+yearlistic_date_df%>%
+  group_by(member_casual)%>%
+  filter(season == 'Spring')%>%
+  count(season)
+#total rides
+yearlistic_date_df%>%
+  filter(season == 'Spring')%>%
+  count(seadon)
+```
+Total rides by member types in fall
+```{r}
+yearlistic_date_df%>%
+  group_by(member_casual)%>%
+  filter(season == 'Fall')%>%
+  count(season)
+```
+
+Total rides by member types in summer 
+```{r}
+yearlistic_date_df%>%
+  group_by(member_casual)%>%
+  filter(season == 'Summer')%>%
+  count(season)
+```
+
+Total rides by member types in Winter
+```{r}
+yearlistic_date_df%>%
+  group_by(member_casual)%>%
+  filter(season =='Winter')%>%
+  count(season)
+```
+
+Total rides of member types  season
+```{r}
+
+yearlistic_date_df%>%
+  group_by(season, member_casual)%>%
+  count(season)
+yearlistic_date_df%>%
+  group_by(season)%>%
+  count(season)
+```
+plot the graph of seasonal usage
+```{r}
+ggplot(data = yearlistic_date_df,mapping = aes
+       (x= season , fill = member_casual))+geom_bar()+labs(title = 'Seasonal usage')
+
+```
+
+Ride length of member types
+```{r}
+yearlistic_avgRide <- mean(yearlistic_date_df$ride_length)
+print(yearlistic_avgRide)
+```
+Ride length of member types
+```{r}
+
+yearlistic_avgRide <- mean(yearlistic_date_df$ride_length)
+print(yearlistic_avgRide)
+ggplot(data = yearlistic_date_df,mapping = aes
+       (x = yearlistic_avgRide, fill = member_casual))+geom_bar()+labs(title = 'Average ride')
+yearlistic_date_df%>%
+  group_by(member_casual)%>%
+  summarise_at(vars(ride_length),
+               list(time = mean))
+yearlistic_date_df%>%
+  group_by(member_casual,rideable_type)%>%
+  summarise_at(vars(ride_length),
+               list(time = mean))
+yearlistic_date_df%>%
+  group_by(rideable_type)%>%
+  summarise_at(vars(ride_length),
+               list(time = mean))
+
+yearlistic_date_df%>%
+  group_by(member_casual,hour)%>%
+  summarise_at(vars(ride_length),
+               list(time = mean))%>%
+  print(n =48)
+yearlistic_date_df%>%
+  group_by(member_casual,season)%>%
+  summarise_at(vars(ride_length),
+               list(time = mean))
+
+ yearlistic_date_df%>%
+  group_by(member_casual,rideable_type,season)%>%
+  summarise_at(vars(ride_length),
+               list(time = mean))
+```
+
