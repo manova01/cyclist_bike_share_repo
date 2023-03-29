@@ -4,7 +4,7 @@ Date : 13/03/2023
 Note: Please refer to the files in this repository to find all of the data/code/graphs/tables found in this report and much more
 
 
-##Introduction
+Introduction
 
 Cyclistic is a Bike-Sharing coompany based in Chicago that offers single day passes, full day passes for casual users, and an annual subscription fee for its members. Customers who purchase single-ride or full-day passes are referred to as casual riders. The company has set a goal of designing marketing strategies aimed at converting casual users into members, and is looking to analyze the historical bike data trip to identify trends.
 
